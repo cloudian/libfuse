@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
+#include <sys/syscall.h>
 #include <assert.h>
 
 /* Environment var controlling the thread stack size */
@@ -118,6 +119,13 @@ static void *fuse_do_work(void *data)
 {
 	struct fuse_worker *w = (struct fuse_worker *) data;
 	struct fuse_mt *mt = w->mt;
+
+#ifdef HAVE_PTHREAD_SETNAME_NP
+	char buffer[16]={0};
+	pid_t tid = syscall(SYS_gettid);
+	snprintf(buffer, 16, "fuse-%d", tid);
+	pthread_setname_np(w->thread_id, buffer);
+#endif
 
 	while (!fuse_session_exited(mt->se)) {
 		int isforget = 0;

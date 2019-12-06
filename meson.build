@@ -46,6 +46,20 @@ cfg.set('HAVE_SETXATTR',
 cfg.set('HAVE_ICONV', 
         cc.has_function('iconv', prefix: '#include <iconv.h>'))
 
+
+thread_dep = dependency('threads')
+if cc.links('''#define _GNU_SOURCE
+            #include <pthread.h>
+            int main (void) {
+              pthread_setname_np (pthread_self (), "name");
+              return 0;
+            }''',
+            name : 'pthread_setname_np(pthread*, const char*)',
+            dependencies : thread_dep)
+  cfg.set('HAVE_PTHREAD_SETNAME_NP', 1)
+endif
+
+
 # Test if structs have specific member
 cfg.set('HAVE_STRUCT_STAT_ST_ATIM',
          cc.has_member('struct stat', 'st_atim',
